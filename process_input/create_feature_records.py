@@ -104,7 +104,7 @@ def set_labels_as_latest_columns(dataset, labels):
 
 
 if __name__ == '__main__':
-    train_tsv = create_dataset_from_input("G:\Projects\PredictiveMaintenance\PM_train.txt")
+    train_tsv = create_dataset_from_input("..\PM_train.txt")
     train_dataset = add_RUL_and_time_windows(train_tsv)
     train_dataset = add_moving_average_moving_std(train_dataset, n_train_after_sensor_columns)
     train_dataset = train_dataset.drop('id', axis=1)
