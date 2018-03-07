@@ -153,4 +153,9 @@ if __name__ == '__main__':
     normalized_test_dataset = normalize_relative_to_dataset(test_dataset, train_dataset)
     normalized_test_dataset.dropna(axis=1, inplace=True)
     normalized_test_dataset = set_pre_sensors_first(normalized_test_dataset, pre_sensor_columns)
+
+    scores = pd.DataFrame({'RUL': pd.Series(read_file_line_by_line_into_list('..\PM_truth.txt'), dtype='int32')})
+    add_time_windows_to_label(scores)
+    normalized_test_dataset = normalized_test_dataset.reset_index()
+    normalized_test_dataset = normalized_test_dataset.merge(scores, left_index=True, right_index=True)
     normalized_test_dataset.to_csv("test_dataset_1_of_3.csv", index=False, header=True)
