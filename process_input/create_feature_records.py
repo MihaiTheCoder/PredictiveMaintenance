@@ -11,6 +11,7 @@ w1 = 30  # second time window - Cycles
 window_size = 5
 
 labels = ['RUL', 'label1', 'label2']
+pre_sensor_columns = ['cycle', 'setting1', 'setting2']
 
 n_pre_sensor_columns = 5  # id, cycle, setting1,setting2,setting3
 n_train_after_sensor_columns = 3  # RUL, label1, label2
@@ -25,6 +26,11 @@ def create_dataset_from_input(tsv_file):
     return tsv
 
 
+def add_time_windows_to_label(dataset):
+    dataset['label1'] = np.where(dataset['RUL'] <= w1, 1, 0)  # 1 if RUL <= w1 else 0
+    dataset['label2'] = np.where(dataset['RUL'] <= w0, 2, dataset['label1'])  # 2 if RUL <= w0 else label1
+
+
 # This function generates the labels for the training data.
 # RUL (Remaining Useful life) for regression models, label1 for binary classification models,
 # label2 for multi-class classification models
@@ -34,8 +40,7 @@ def add_RUL_and_time_windows(input_dataset):
     merged = pd.merge(input_dataset, count_df, on="id")
     # RUL = Remaining Useful Life (RUL)
     merged['RUL'] = merged['count'] - merged['cycle']
-    merged['label1'] = np.where(merged['RUL'] <= w1, 1, 0)  # 1 if RUL <= w1 else 0
-    merged['label2'] = np.where(merged['RUL'] <= w0, 2, merged['label1'])  # 2 if RUL <= w0 else label1
+    add_time_windows_to_label(merged)
     merged = merged.drop('count', axis=1)
 
     return merged
@@ -95,6 +100,11 @@ def normalize_all_except(dataset, excluded_columns):
     return normalized_dataset
 
 
+def normalize_relative_to_dataset(dataset, refence_dataset):
+    normalized_dataset = (dataset - refence_dataset.min()) / (refence_dataset.max()-refence_dataset.min())
+    return normalized_dataset
+
+
 def set_labels_as_latest_columns(dataset, labels):
     columns = list(dataset.columns.values)
     for label in labels:
@@ -103,12 +113,44 @@ def set_labels_as_latest_columns(dataset, labels):
     return dataset[columns]
 
 
+def get_latest_for_each_id(dataset):
+    latest_records = dataset.groupby('id').tail(1)
+    return latest_records
+
+
+def set_pre_sensors_first(dataset, pre_sensor_columns):
+    columns = list(dataset.columns.values)
+    for pre_sensor_column in reversed(pre_sensor_columns):
+        columns.remove(pre_sensor_column)
+        columns.insert(0, pre_sensor_column)
+    return dataset[columns]
+
+
+def read_file_line_by_line_into_list(file_path):
+    with open(file_path) as f:
+        content = f.readlines()
+
+    content = [x.strip() for x in content]
+    return content
+
+
 if __name__ == '__main__':
     train_tsv = create_dataset_from_input("..\PM_train.txt")
     train_dataset = add_RUL_and_time_windows(train_tsv)
     train_dataset = add_moving_average_moving_std(train_dataset, n_train_after_sensor_columns)
+
     train_dataset = train_dataset.drop('id', axis=1)
     normalized_train_dataset = normalize_all_except(train_dataset, labels)
     normalized_train_dataset = set_labels_as_latest_columns(normalized_train_dataset, labels)
     normalized_train_dataset.dropna(axis=1, inplace=True)
     normalized_train_dataset.to_csv("train_dataset_1_of_3.csv", index=False, header=True)
+
+    test_tsv = create_dataset_from_input("..\PM_test.txt")
+    test_dataset = add_moving_average_moving_std(test_tsv, n_test_after_sensor_columns)
+    test_dataset = get_latest_for_each_id(test_dataset)
+
+    test_dataset = test_dataset.drop('id', axis=1)
+    normalized_test_dataset = normalize_relative_to_dataset(test_dataset, train_dataset)
+    normalized_test_dataset.dropna(axis=1, inplace=True)
+    normalized_test_dataset = set_pre_sensors_first(normalized_test_dataset, pre_sensor_columns)
+    normalized_test_dataset.to_csv("test_dataset_1_of_3.csv", index=False, header=True)
