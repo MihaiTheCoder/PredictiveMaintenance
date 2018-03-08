@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
-
+from statsmodels.discrete.discrete_model import Poisson
 
 def get_top_features(dataset, n_features):
     rul_column = dataset['RUL']
@@ -13,11 +13,13 @@ def get_top_features(dataset, n_features):
 
 
 def get_regression_predictions(training_features_df, training_rul_values, testing_features_df, testing_rul_values):
-    gradient_boosting_regressor = GradientBoostingRegressor(n_estimators=100, min_samples_leaf=10, learning_rate=0.2, max_leaf_nodes=20)
+    gradient_boosting_regressor = GradientBoostingRegressor(n_estimators=100, min_samples_leaf=10, learning_rate=0.2,
+                                                            max_leaf_nodes=20)
     gradient_boosting_estimator = gradient_boosting_regressor.fit(training_features_df.values, training_rul_values)
     gradient_boosting_predictions = gradient_boosting_estimator.predict(testing_features_df.values)
 
-    decision_forest_regressor = RandomForestRegressor(n_estimators=100, min_samples_leaf=10, max_leaf_nodes=20)
+    decision_forest_regressor = RandomForestRegressor(n_estimators=8, max_depth=32, min_samples_split=128,
+                                                      min_samples_leaf=1)
     decision_forest_estimator = decision_forest_regressor.fit(training_features_df.values, training_rul_values)
     decision_forest_predictions = decision_forest_estimator.predict(testing_features_df.values)
 
@@ -26,9 +28,14 @@ def get_regression_predictions(training_features_df, training_rul_values, testin
     neural_network_estimator = neural_network_regressor.fit(training_features_df.values, training_rul_values)
     neural_network_predictions = neural_network_estimator.predict(test_df_features.values)
 
+    poisson_regressor = Poisson(training_rul_values, training_features_df.values)
+    poisson_estimator = poisson_regressor.fit(method="lbfgs", maxiter=20, full_output=False, disp=False)
+    poisson_predictions = poisson_estimator.predict(test_df_features.values)
+
     predictions_truth = pd.DataFrame({'GradientBoostingRegressor_Prediction': pd.Series(gradient_boosting_predictions),
                                       'DecisionForestRegressor_Prediction': pd.Series(decision_forest_predictions),
-                                      'MLPerceptronRegressor_Prediction' : pd.Series(neural_network_predictions),
+                                      'MLPerceptronRegressor_Prediction': pd.Series(neural_network_predictions),
+                                      'PoissonRegressor_Prediction': pd.Series(poisson_predictions),
                                       'RUL': pd.Series(testing_rul_values)})
 
     #  RUL GradientBoostingRegressor_Prediction DecisionForestRegression_Prediction
