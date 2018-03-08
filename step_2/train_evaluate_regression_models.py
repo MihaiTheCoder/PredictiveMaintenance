@@ -13,8 +13,8 @@ def get_top_features(dataset, n_features):
 
 def get_regression_predictions(training_features_df, training_rul_values, testing_features_df, testing_rul_values):
     gradient_boosting_regressor = GradientBoostingRegressor(n_estimators=100, min_samples_leaf=10, learning_rate=0.2, max_leaf_nodes=20)
-    gradient_boosting_esimator = gradient_boosting_regressor.fit(training_features_df.values, training_rul_values)
-    gradient_boosting_predictions = gradient_boosting_esimator.predict(testing_features_df.values)
+    gradient_boosting_estimator = gradient_boosting_regressor.fit(training_features_df.values, training_rul_values)
+    gradient_boosting_predictions = gradient_boosting_estimator.predict(testing_features_df.values)
 
     decision_forest_regressor = RandomForestRegressor(n_estimators=100, min_samples_leaf=10, max_leaf_nodes=20)
     decision_forest_estimator = decision_forest_regressor.fit(df_train_top_features.values, df_train['RUL'].values)
