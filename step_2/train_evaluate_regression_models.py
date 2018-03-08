@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
+from sklearn.neural_network import MLPRegressor
 
 
 def get_top_features(dataset, n_features):
@@ -17,11 +18,17 @@ def get_regression_predictions(training_features_df, training_rul_values, testin
     gradient_boosting_predictions = gradient_boosting_estimator.predict(testing_features_df.values)
 
     decision_forest_regressor = RandomForestRegressor(n_estimators=100, min_samples_leaf=10, max_leaf_nodes=20)
-    decision_forest_estimator = decision_forest_regressor.fit(df_train_top_features.values, df_train['RUL'].values)
+    decision_forest_estimator = decision_forest_regressor.fit(training_features_df.values, training_rul_values)
     decision_forest_predictions = decision_forest_estimator.predict(testing_features_df.values)
+
+    neural_network_regressor = MLPRegressor(hidden_layer_sizes=(100,), learning_rate='constant',
+                                            learning_rate_init=0.005, max_iter=100)
+    neural_network_estimator = neural_network_regressor.fit(training_features_df.values, training_rul_values)
+    neural_network_predictions = neural_network_estimator.predict(test_df_features.values)
 
     predictions_truth = pd.DataFrame({'GradientBoostingRegressor_Prediction': pd.Series(gradient_boosting_predictions),
                                       'DecisionForestRegressor_Prediction': pd.Series(decision_forest_predictions),
+                                      'MLPerceptronRegressor_Prediction' : pd.Series(neural_network_predictions),
                                       'RUL': pd.Series(testing_rul_values)})
 
     #  RUL GradientBoostingRegressor_Prediction DecisionForestRegression_Prediction
