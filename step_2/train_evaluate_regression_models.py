@@ -3,8 +3,8 @@ from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
 from sklearn import metrics
 import numpy as np
-
 from statsmodels.discrete.discrete_model import Poisson
+
 
 def get_top_features(dataset, n_features):
     rul_column = dataset['RUL']
@@ -29,11 +29,11 @@ def get_regression_predictions(training_features_df, training_rul_values, testin
     neural_network_regressor = MLPRegressor(hidden_layer_sizes=(100,), learning_rate='constant',
                                             learning_rate_init=0.005, max_iter=100)
     neural_network_estimator = neural_network_regressor.fit(training_features_df.values, training_rul_values)
-    neural_network_predictions = neural_network_estimator.predict(test_df_features.values)
+    neural_network_predictions = neural_network_estimator.predict(testing_features_df.values)
 
     poisson_regressor = Poisson(training_rul_values, training_features_df.values)
     poisson_estimator = poisson_regressor.fit(method="lbfgs", maxiter=20, full_output=False, disp=False)
-    poisson_predictions = poisson_estimator.predict(test_df_features.values)
+    poisson_predictions = poisson_estimator.predict(testing_features_df.values)
 
     predictions_truth = pd.DataFrame({'GradientBoostingRegressor_Prediction': pd.Series(gradient_boosting_predictions),
                                       'DecisionForestRegressor_Prediction': pd.Series(decision_forest_predictions),
