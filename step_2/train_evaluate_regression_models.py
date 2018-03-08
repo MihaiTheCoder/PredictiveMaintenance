@@ -1,6 +1,8 @@
 import pandas as pd
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
+from sklearn import metrics
+import numpy as np
 
 
 def get_top_features(dataset, n_features):
@@ -35,6 +37,44 @@ def get_regression_predictions(training_features_df, training_rul_values, testin
     return predictions_truth
 
 
+def get_root_mean_squared_error(y_true, y_predicted):
+    return np.sqrt(((y_true-y_predicted) ** 2).mean())  # sqrt((1/n)*sum((truth-predicted)**2))
+
+
+def get_relative_absolute_error(y_true, y_predicted):  # mean(|truth-predicted|)
+    absolute_error = np.abs(y_true-y_predicted)
+    absolute_error_mean = np.abs(y_true-y_true.mean())
+    return sum(absolute_error)/sum(absolute_error_mean)
+
+
+def get_relative_squared_error(y_true, y_predicted):
+    squared_error = (y_true-y_predicted) ** 2
+    squared_error_mean = (y_true-y_true.mean()) ** 2
+
+    return squared_error.sum()/squared_error_mean.sum()
+
+
+def evaluate_regression_models(predictions_truth):
+    prediction_columns = list(predictions_truth.columns.values)
+    prediction_columns.remove('RUL')
+    truth = predictions_truth['RUL'].values
+    list_of_features = list()
+    for prediction_column in prediction_columns:
+        prediction = predictions_truth[prediction_column].values
+        log_loss = 0#metrics.log_loss(truth, prediction)
+        mean_absolute_error = metrics.mean_absolute_error(truth, prediction)
+        root_mean_squared_error = get_root_mean_squared_error(truth, prediction)
+        relative_absolute_error = get_relative_absolute_error(truth, prediction)
+        relative_squared_error = get_relative_squared_error(truth, prediction)
+        r2_score = metrics.r2_score(truth, prediction)
+        list_of_features.append([log_loss, mean_absolute_error, root_mean_squared_error, relative_absolute_error,
+                                 relative_squared_error, r2_score])
+
+    return pd.DataFrame(list_of_features, columns=['Negative Log Likelihood', 'Mean Absolute Error',
+                                                   'Root Mean Squared Error', 'Relative Absolute Error',
+                                                   'Relative Squared Error', 'Coefficient of Determination'])
+
+
 if __name__ == '__main__':
     df_train = pd.read_csv("../process_input/train_dataset_1_of_3.csv")
     test_df = pd.read_csv("../process_input/test_dataset_1_of_3.csv")
@@ -50,5 +90,5 @@ if __name__ == '__main__':
     test_df_features = test_df[top_features]
 
     predictions_truth = get_regression_predictions(df_train_top_features, df_train['RUL'].values, test_df_features, test_df['RUL'].values)
-
-    print(predictions_truth)
+    evaluation = evaluate_regression_models(predictions_truth)
+    print(evaluation)
