@@ -11,6 +11,20 @@ def get_top_features(dataset, n_features):
     return list(important_features.index)
 
 
+def get_regression_predictions(training_features_df, training_rul_values, testing_features_df, testing_rul_values):
+    gradient_boosting_regressor = GradientBoostingRegressor(n_estimators=100, min_samples_leaf=10, learning_rate=0.2, max_leaf_nodes=20)
+    gradient_boosting_esimator = gradient_boosting_regressor.fit(training_features_df.values, training_rul_values)
+
+    gradient_boosting_predictions = gradient_boosting_esimator.predict(testing_features_df.values)
+
+    #
+
+    predictions_truth = pd.DataFrame({'GradientBoostingRegressor_Prediction': pd.Series(gradient_boosting_predictions),'RUL': pd.Series(testing_rul_values)})
+
+    #  RUL GradientBoostingRegressor_Prediction DecisionForestRegression_Prediction
+    return predictions_truth
+
+
 if __name__ == '__main__':
     df_train = pd.read_csv("../process_input/train_dataset_1_of_3.csv")
     test_df = pd.read_csv("../process_input/test_dataset_1_of_3.csv")
@@ -22,16 +36,9 @@ if __name__ == '__main__':
     #  get top 35 features (35 chosen at random)
     df_train_top_features = df_train[top_features]
 
-    regressor = GradientBoostingRegressor(n_estimators=100, min_samples_leaf=10, learning_rate=0.2, max_leaf_nodes=20)
-    est = regressor.fit(df_train_top_features.values, df_train['RUL'].values)
-
     # features to use for prediction
     test_df_features = test_df[top_features]
 
-    predictions = est.predict(test_df_features.values)
+    predictions_truth = get_regression_predictions(df_train_top_features, df_train['RUL'].values, test_df_features, test_df['RUL'].values)
 
-    predictions_truth = pd.DataFrame({'Prediction': pd.Series(predictions), 'RUL': pd.Series(test_df['RUL'].values)})
     print(predictions_truth)
-
-
-    #print(predictions_truth)
