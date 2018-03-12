@@ -1,7 +1,8 @@
 import pandas as pd
-from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier
 
 def get_top_features(dataset, n_features):
     label_column = dataset['label1']
