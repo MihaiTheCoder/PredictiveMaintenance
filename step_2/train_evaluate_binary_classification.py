@@ -3,6 +3,7 @@ from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
+import numpy as np
 
 def get_top_features(dataset, n_features):
     label_column = dataset['label1']
@@ -13,12 +14,32 @@ def get_top_features(dataset, n_features):
     return list(important_features.index)
 
 
+def sample(training_features_df, training_label_values):
+    positive_training_labels = np.where(training_label_values == 1)[0]
+    negative_training_labels = np.where(training_label_values == 0)[0]
+    sample_size = len(positive_training_labels)
+
+    sample_negative_training_labels = np.random.choice(negative_training_labels, sample_size)
+
+    sampled_training_indexes = np.append(positive_training_labels, sample_negative_training_labels)
+    sample_training_labels = training_label_values[sampled_training_indexes]
+
+    sample_training_features = training_features_df.filter(sampled_training_indexes, axis='index')
+    return sample_training_features, sample_training_labels
+
+
 def get_binary_classification_predictions(training_features_df, training_label_values, testing_features_df, testing_label_values):
+    sample_training_features, sample_training_labels = sample(training_features_df, training_label_values)
+
     classifier = AdaBoostClassifier(DecisionTreeClassifier(max_leaf_nodes=20, min_samples_split=10), n_estimators=100,
                                     learning_rate=0.2)
     classifier.fit(training_features_df, training_label_values)
-
     ada_classifier_predicted = classifier.predict(testing_features_df)
+
+    classifier = AdaBoostClassifier(DecisionTreeClassifier(max_leaf_nodes=20, min_samples_split=10), n_estimators=100,
+                                    learning_rate=0.2)
+    classifier.fit(sample_training_features, sample_training_labels)
+    sampled_ada_classifier_predicted = classifier.predict(testing_features_df)
 
     random_forestClassifier = RandomForestClassifier(n_estimators=8, max_depth=32)
     random_forestClassifier.fit(training_features_df, training_label_values)
@@ -38,6 +59,7 @@ def get_binary_classification_predictions(training_features_df, training_label_v
                                       'AdaBoostDecisionTreeClassifier_Prediction': pd.Series(ada_classifier_predicted),
                                       'NeuralNetworkMLPClassifier_Prediction': pd.Series(mlp_predicted),
                                       'RandomForest_Prediction': pd.Series(random_forest_predicted),
+                                      'Sampled_AdaBoostDecisionTreeClassifier_Prediction': pd.Series(sampled_ada_classifier_predicted),
                                       'label': pd.Series(testing_label_values)})
 
     return predictions_truth
