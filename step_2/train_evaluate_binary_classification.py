@@ -86,7 +86,7 @@ def get_beamer_table_values(truth, prediction):
     return true_positive, false_negative, false_positive, true_negative
 
 
-def evaluate_bianry_classification_models(predictions_truth):
+def evaluate_binary_classification_models(predictions_truth):
     prediction_columns = list(predictions_truth.columns.values)
     prediction_columns.remove('label')
     truth = predictions_truth['label'].values
@@ -109,7 +109,7 @@ def evaluate_bianry_classification_models(predictions_truth):
                                                    'False Positive', 'True Negative',
                                                    'Positive Label', 'Negative Label',
                                                    'Precision', 'Recall', 'Accuracy',
-                                                   'F1 Score', 'AUC'])
+                                                   'F1 Score', 'AUC'], index=prediction_columns)
 
 
 if __name__ == '__main__':
@@ -128,5 +128,5 @@ if __name__ == '__main__':
 
     predictions_truth = get_binary_classification_predictions(df_train_top_features, df_train['label1'].values,
                                                               test_df_features, test_df['label1'].values)
-    evaluation = evaluate_bianry_classification_models(predictions_truth)
+    evaluation = evaluate_binary_classification_models(predictions_truth)
     print(evaluation)
