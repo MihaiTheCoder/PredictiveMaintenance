@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 
@@ -19,6 +19,10 @@ def get_binary_classification_predictions(training_features_df, training_label_v
 
     ada_classifier_predicted = classifier.predict(testing_features_df)
 
+    random_forestClassifier = RandomForestClassifier(n_estimators=8, max_depth=32)
+    random_forestClassifier.fit(training_features_df, training_label_values)
+    random_forest_predicted = random_forestClassifier.predict(testing_features_df)
+
 
     logreg = LogisticRegression(tol=1e-7)
     logreg.fit(training_features_df, training_label_values)
@@ -26,6 +30,7 @@ def get_binary_classification_predictions(training_features_df, training_label_v
 
     predictions_truth = pd.DataFrame({'LogisticRegression_Prediction': pd.Series(logreg_predicted),
                                       'AdaBoostDecisionTreeClassifier_Prediction': pd.Series(ada_classifier_predicted),
+                                      'RandomForest_Prediction': pd.Series(random_forest_predicted),
                                       'label': pd.Series(testing_label_values)})
 
     return predictions_truth
