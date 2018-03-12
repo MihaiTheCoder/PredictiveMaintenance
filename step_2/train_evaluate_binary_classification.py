@@ -1,5 +1,6 @@
 import pandas as pd
-
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
 
 def get_top_features(dataset, n_features):
     label_column = dataset['label1']
@@ -10,8 +11,17 @@ def get_top_features(dataset, n_features):
     return list(important_features.index)
 
 
-def get_binary_classification_predictions(training_features_df, training_rul_values, testing_features_df, testing_rul_values):
-    return training_features_df
+def get_binary_classification_predictions(training_features_df, training_label_values, testing_features_df, testing_label_values):
+    classifier = AdaBoostClassifier(DecisionTreeClassifier(max_leaf_nodes=20, min_samples_split=10), n_estimators=100,
+                                    learning_rate=0.2)
+    classifier.fit(training_features_df, training_label_values)
+
+    ada_classifier_predicted = classifier.predict(testing_features_df)
+
+    predictions_truth = pd.DataFrame({'AdaBoostDecisionTreeClassifier_Prediction': pd.Series(ada_classifier_predicted),
+                                      'label': pd.Series(testing_label_values)})
+
+    return predictions_truth
 
 
 def evaluate_bianry_classification_models(predictions_truth):
