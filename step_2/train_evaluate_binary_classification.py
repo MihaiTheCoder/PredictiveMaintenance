@@ -52,16 +52,16 @@ def get_binary_classification_predictions(training_features_df, training_label_v
     random_forest_predicted = random_forestClassifier.predict(testing_features_df)
 
 
-    logreg = LogisticRegression(tol=1e-7)
+    logreg = LogisticRegression(tol=1e-07)
     logreg.fit(training_features_df, training_label_values)
 
-    joblib.dump(random_forestClassifier, 'binary_classification/random_forestClassifier.pkl')
+    joblib.dump(logreg, 'binary_classification/LogisticRegression.pkl')
     logreg_predicted = logreg.predict(testing_features_df)
 
 
     mlp_classifier = MLPClassifier(learning_rate_init=0.1, solver='sgd', momentum=0, max_iter=100)
     mlp_classifier.fit(training_features_df, training_label_values)
-    joblib.dump(random_forestClassifier, 'binary_classification/NeuralNetworkMLPClassifier.pkl')
+    joblib.dump(mlp_classifier, 'binary_classification/NeuralNetworkMLPClassifier.pkl')
     mlp_predicted = mlp_classifier.predict(testing_features_df)
 
     predictions_truth = pd.DataFrame({'LogisticRegression_Prediction': pd.Series(logreg_predicted),

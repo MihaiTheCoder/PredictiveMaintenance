@@ -3,9 +3,8 @@ from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
-import numpy as np
 from sklearn import metrics
-from mlxtend import evaluate
+from sklearn.externals import joblib
 
 
 def get_top_features(dataset, n_features):
@@ -22,20 +21,24 @@ def get_multiclass_classification_predictions(training_features_df, training_lab
     classifier = AdaBoostClassifier(DecisionTreeClassifier(max_leaf_nodes=20, min_samples_split=10), n_estimators=100,
                                     learning_rate=0.2)
     classifier.fit(training_features_df, training_label_values)
+    joblib.dump(classifier, 'multiclass/AdaBoostDecisionTreeClassifier.pkl')
     ada_classifier_predicted = classifier.predict(testing_features_df)
 
     random_forestClassifier = RandomForestClassifier(n_estimators=8, max_depth=32)
     random_forestClassifier.fit(training_features_df, training_label_values)
+    joblib.dump(random_forestClassifier, 'multiclass/random_forestClassifier.pkl')
     random_forest_predicted = random_forestClassifier.predict(testing_features_df)
 
 
     logreg = LogisticRegression(tol=1e-07)
     logreg.fit(training_features_df, training_label_values)
+    joblib.dump(logreg, 'multiclass/LogisticRegression.pkl')
     logreg_predicted = logreg.predict(testing_features_df)
 
 
     mlp_classifier = MLPClassifier(learning_rate_init=0.1, solver='sgd', momentum=0, max_iter=100)
     mlp_classifier.fit(training_features_df, training_label_values)
+    joblib.dump(mlp_classifier, 'multiclass/NeuralNetworkMLPClassifier.pkl')
     mlp_predicted = mlp_classifier.predict(testing_features_df)
 
     predictions_truth = pd.DataFrame({'LogisticRegression_Prediction': pd.Series(logreg_predicted),
@@ -96,4 +99,5 @@ if __name__ == '__main__':
     predictions_truth = get_multiclass_classification_predictions(df_train_top_features, df_train['label2'].values,
                                                                   test_df_features, test_df['label2'].values)
     evaluation = evaluate_multiclass_classification_models(predictions_truth)
+    evaluation.to_csv('multiclass/comparison.csv', index_label='Algorithm')
     print(evaluation)
