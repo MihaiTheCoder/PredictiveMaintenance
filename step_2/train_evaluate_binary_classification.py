@@ -5,6 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
 import numpy as np
 from sklearn import metrics
+from sklearn.externals import joblib
 
 def get_top_features(dataset, n_features):
     label_column = dataset['label1']
@@ -35,25 +36,32 @@ def get_binary_classification_predictions(training_features_df, training_label_v
     classifier = AdaBoostClassifier(DecisionTreeClassifier(max_leaf_nodes=20, min_samples_split=10), n_estimators=100,
                                     learning_rate=0.2)
     classifier.fit(training_features_df, training_label_values)
+    joblib.dump(classifier, 'binary_classification/AdaBoostDecisionTreeClassifier.pkl')
+
     ada_classifier_predicted = classifier.predict(testing_features_df)
 
     classifier = AdaBoostClassifier(DecisionTreeClassifier(max_leaf_nodes=20, min_samples_split=10), n_estimators=100,
                                     learning_rate=0.2)
     classifier.fit(sample_training_features, sample_training_labels)
+    joblib.dump(classifier, 'binary_classification/Sampled_AdaBoostDecisionTreeClassifier.pkl')
     sampled_ada_classifier_predicted = classifier.predict(testing_features_df)
 
     random_forestClassifier = RandomForestClassifier(n_estimators=8, max_depth=32)
     random_forestClassifier.fit(training_features_df, training_label_values)
+    joblib.dump(random_forestClassifier, 'binary_classification/random_forestClassifier.pkl')
     random_forest_predicted = random_forestClassifier.predict(testing_features_df)
 
 
     logreg = LogisticRegression(tol=1e-7)
     logreg.fit(training_features_df, training_label_values)
+
+    joblib.dump(random_forestClassifier, 'binary_classification/random_forestClassifier.pkl')
     logreg_predicted = logreg.predict(testing_features_df)
 
 
     mlp_classifier = MLPClassifier(learning_rate_init=0.1, solver='sgd', momentum=0, max_iter=100)
     mlp_classifier.fit(training_features_df, training_label_values)
+    joblib.dump(random_forestClassifier, 'binary_classification/NeuralNetworkMLPClassifier.pkl')
     mlp_predicted = mlp_classifier.predict(testing_features_df)
 
     predictions_truth = pd.DataFrame({'LogisticRegression_Prediction': pd.Series(logreg_predicted),
@@ -129,4 +137,5 @@ if __name__ == '__main__':
     predictions_truth = get_binary_classification_predictions(df_train_top_features, df_train['label1'].values,
                                                               test_df_features, test_df['label1'].values)
     evaluation = evaluate_binary_classification_models(predictions_truth)
+    evaluation.to_csv('binary_classification/comparison.csv', index_label='Algorithm')
     print(evaluation)
