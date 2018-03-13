@@ -5,6 +5,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
 import numpy as np
 from sklearn import metrics
+from mlxtend import evaluate
+
 
 def get_top_features(dataset, n_features):
     label_column = dataset['label2']
@@ -27,7 +29,7 @@ def get_multiclass_classification_predictions(training_features_df, training_lab
     random_forest_predicted = random_forestClassifier.predict(testing_features_df)
 
 
-    logreg = LogisticRegression(tol=1e-7)
+    logreg = LogisticRegression(tol=1e-07)
     logreg.fit(training_features_df, training_label_values)
     logreg_predicted = logreg.predict(testing_features_df)
 
@@ -45,24 +47,8 @@ def get_multiclass_classification_predictions(training_features_df, training_lab
     return predictions_truth
 
 
-def get_beamer_table_values(truth, prediction):
-    true_positive = 0
-    false_positive = 0
-    true_negative = 0
-    false_negative = 0
-
-    for i in range(0, len(truth)):
-        if truth[i] == prediction[i] and truth[i] == 1:
-            true_positive = true_positive + 1
-        if truth[i] == prediction[i] and truth[i] == 0:
-            true_negative = true_negative + 1
-        if truth[i] != prediction[i] and truth[i] == 1:
-            false_negative = false_negative + 1
-        if truth[i] != prediction[i] and truth[i] == 0:
-            false_positive = false_positive + 1
-
-
-    return true_positive, false_negative, false_positive, true_negative
+def get_confusion_matrix_multiclass(truth, prediction):
+    return metrics.confusion_matrix(y_true=truth, y_pred=prediction)
 
 
 def evaluate_multiclass_classification_models(predictions_truth):
@@ -72,22 +58,25 @@ def evaluate_multiclass_classification_models(predictions_truth):
     list_of_features = list()
     for prediction_column in prediction_columns:
         prediction = predictions_truth[prediction_column].values
-        positive_label = 1
-        negative_label = 0
-        true_positive, false_negative, false_positive, true_negative = get_beamer_table_values(truth, prediction)
-        precision = true_positive / (true_positive + false_positive)
-        recall = true_positive / (true_positive + false_negative)
-        accuracy = (true_positive + true_negative) / (true_positive + true_negative + false_positive + false_negative)
-        f_score = 2 * (precision * recall) / (precision + recall)
-        list_of_features.append([true_positive, false_negative, false_positive, true_negative,
-                                 positive_label, negative_label, precision, recall, accuracy,
-                                 f_score])
+        mat = get_confusion_matrix_multiclass(truth, prediction)
 
-    return pd.DataFrame(list_of_features, columns=['True Positive', 'False Negative',
-                                                   'False Positive', 'True Negative',
-                                                   'Positive Label', 'Negative Label',
-                                                   'Precision', 'Recall', 'Accuracy',
-                                                   'F1 Score'], index=prediction_columns)
+        #accuracy
+        overall_accuracy = metrics.accuracy_score(y_true=truth, y_pred=prediction)
+        avg_accuracy = 0
+        #precision
+        micro_precision = metrics.precision_score(y_true=truth, y_pred=prediction, average='micro')
+        macro_precision = metrics.precision_score(y_true=truth, y_pred=prediction, average='macro')
+        #recall
+        micro_recall = metrics.recall_score(y_true=truth, y_pred=prediction, average='micro')
+        macro_recall = metrics.recall_score(y_true=truth, y_pred=prediction, average='macro')
+
+        list_of_features.append([overall_accuracy, avg_accuracy, micro_precision, macro_precision,
+                                 micro_recall, macro_recall])
+
+    return pd.DataFrame(list_of_features, columns=['Overall Accuracy', 'Averaged Accuracy',
+                                                   'Micro-averaged Precision', 'Macro-averaged Precision',
+                                                   'Micro-averaged Recall', 'Macro-averaged Recall'],
+                                                    index=prediction_columns)
 
 
 if __name__ == '__main__':
