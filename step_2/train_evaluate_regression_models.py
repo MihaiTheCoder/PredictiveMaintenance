@@ -4,6 +4,7 @@ from sklearn.neural_network import MLPRegressor
 from sklearn import metrics
 import numpy as np
 from statsmodels.discrete.discrete_model import Poisson
+from sklearn.externals import joblib
 
 
 def get_top_features(dataset, n_features):
@@ -19,20 +20,25 @@ def get_regression_predictions(training_features_df, training_rul_values, testin
     gradient_boosting_regressor = GradientBoostingRegressor(n_estimators=100, min_samples_leaf=10, learning_rate=0.2,
                                                             max_leaf_nodes=20)
     gradient_boosting_estimator = gradient_boosting_regressor.fit(training_features_df.values, training_rul_values)
+    joblib.dump(gradient_boosting_estimator, 'regression/gradient_boosting_estimator.pkl')
+
     gradient_boosting_predictions = gradient_boosting_estimator.predict(testing_features_df.values)
 
     decision_forest_regressor = RandomForestRegressor(n_estimators=8, max_depth=32, min_samples_split=128,
                                                       min_samples_leaf=1)
     decision_forest_estimator = decision_forest_regressor.fit(training_features_df.values, training_rul_values)
+    joblib.dump(decision_forest_estimator, 'regression/decision_forest_estimator.pkl')
     decision_forest_predictions = decision_forest_estimator.predict(testing_features_df.values)
 
     neural_network_regressor = MLPRegressor(hidden_layer_sizes=(100,), learning_rate='constant',
                                             learning_rate_init=0.005, max_iter=100)
     neural_network_estimator = neural_network_regressor.fit(training_features_df.values, training_rul_values)
+    joblib.dump(neural_network_estimator, 'regression/neural_network_estimator.pkl')
     neural_network_predictions = neural_network_estimator.predict(testing_features_df.values)
 
     poisson_regressor = Poisson(training_rul_values, training_features_df.values)
     poisson_estimator = poisson_regressor.fit(method="lbfgs", maxiter=20, full_output=False, disp=False)
+    joblib.dump(poisson_estimator, 'regression/poisson_estimator.pkl')
     poisson_predictions = poisson_estimator.predict(testing_features_df.values)
 
     predictions_truth = pd.DataFrame({'GradientBoostingRegressor_Prediction': pd.Series(gradient_boosting_predictions),
@@ -80,7 +86,8 @@ def evaluate_regression_models(predictions_truth):
 
     return pd.DataFrame(list_of_features, columns=['Negative Log Likelihood', 'Mean Absolute Error',
                                                    'Root Mean Squared Error', 'Relative Absolute Error',
-                                                   'Relative Squared Error', 'Coefficient of Determination'])
+                                                   'Relative Squared Error', 'Coefficient of Determination'],
+                        index=prediction_columns)
 
 
 if __name__ == '__main__':
@@ -99,4 +106,5 @@ if __name__ == '__main__':
 
     predictions_truth = get_regression_predictions(df_train_top_features, df_train['RUL'].values, test_df_features, test_df['RUL'].values)
     evaluation = evaluate_regression_models(predictions_truth)
+    evaluation.to_csv('regression/comparison.csv', index_label='Algorithm')
     print(evaluation)
