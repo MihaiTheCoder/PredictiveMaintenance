@@ -46,10 +46,12 @@ def get_multiclass_classification_predictions(training_features_df, training_lab
 
     nn_ordinal_regression = LogisticIT()
     nn_ordinal_regression.fit(training_features_df, training_label_values)
+    joblib.dump(nn_ordinal_regression, 'multiclass/nn_ordinal_regression.pkl')
     nn_ordinal_regression_predicted = nn_ordinal_regression.predict(testing_features_df)
 
     lr_ordinal_regression = LogisticSE()
     lr_ordinal_regression.fit(training_features_df, training_label_values)
+    joblib.dump(lr_ordinal_regression, 'multiclass/lr_ordinal_regression.pkl')
     lr_ordinal_regression_predicted = lr_ordinal_regression.predict(testing_features_df)
 
 
