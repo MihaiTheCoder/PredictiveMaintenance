@@ -16,13 +16,14 @@ pre_sensor_columns = ['cycle', 'setting1', 'setting2']
 n_pre_sensor_columns = 5  # id, cycle, setting1,setting2,setting3
 n_train_after_sensor_columns = 3  # RUL, label1, label2
 n_test_after_sensor_columns = 0
+initial_column_names = ["id", "cycle", "setting1", "setting2", "setting3", "s1", "s2", "s3", "s4", "s5", "s6",
+                        "s7", "s8", "s9", "s10", "s11", "s12", "s13", "s14", "s15", "s16", "s17", "s18", "s19",
+                        "s20", "s21"]
 
 
 def create_dataset_from_input(tsv_file):
-    tsv = pd.read_csv(tsv_file, delim_whitespace=True, header=None,
-                      names=["id", "cycle", "setting1", "setting2", "setting3", "s1", "s2", "s3", "s4", "s5", "s6",
-                             "s7", "s8", "s9", "s10", "s11", "s12", "s13", "s14", "s15", "s16", "s17", "s18", "s19",
-                             "s20", "s21"])
+    tsv = pd.read_csv(filepath_or_buffer=tsv_file, delim_whitespace=True, header=None,
+                      names=initial_column_names)
     return tsv
 
 
@@ -140,6 +141,7 @@ if __name__ == '__main__':
     train_dataset = add_moving_average_moving_std(train_dataset, n_train_after_sensor_columns)
 
     train_dataset = train_dataset.drop('id', axis=1)
+    train_dataset.to_csv('train_dataset_with_extra_features.csv')
     normalized_train_dataset = normalize_all_except(train_dataset, labels)
     normalized_train_dataset = set_labels_as_latest_columns(normalized_train_dataset, labels)
     normalized_train_dataset.dropna(axis=1, inplace=True)
