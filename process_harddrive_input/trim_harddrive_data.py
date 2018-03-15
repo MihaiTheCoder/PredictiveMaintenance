@@ -28,5 +28,5 @@ if __name__ == '__main__':
     training_dataset = pd.concat(training_datasets)
     testing_dataset = pd.concat(testing_datasets)
 
-    training_dataset.to_csv('training_harddrive.csv')
-    testing_dataset.to_csv('testing_harddrive.csv')
+    training_dataset.to_csv('training_harddrive.csv', index=False)
+    testing_dataset.to_csv('testing_harddrive.csv', index=False)
