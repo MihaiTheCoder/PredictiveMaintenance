@@ -1,9 +1,9 @@
-mord==0.5
+pip==9.0.1
 numpy==1.14.1
 pandas==0.22.0
+mord==0.5
 patsy==0.5.0
-pip==9.0.1
 scikit-learn==0.19.1
-scipy==1.0.0
 sklearn==0.0
+scipy==1.0.0
 statsmodels==0.8.0
