@@ -1,0 +1,9 @@
+pip
+flask
+numpy
+pandas
+mord
+scikit-learn
+sklearn
+scipy
+statsmodels
