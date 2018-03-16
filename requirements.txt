@@ -1,10 +1,14 @@
-pip
-flask
-numpy
-sklearn
-scikit-learn
-scipy
-mord
-statsmodels
-six
-pandas
+--find-links wheelhouse
+pip==9.0
+flask==0.12
+numpy==1.14
+sklearn==0.0
+scikit_learn==0.19
+scipy==1.0
+mord==0.5
+statsmodels==0.8
+six==1.11
+pandas0.22
+patsy==0.5
+pytz==2018.3
+python_dateutil==2.7
