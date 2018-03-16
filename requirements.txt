@@ -1,8 +1,8 @@
 pip
 flask
 numpy
-scikit-learn
 sklearn
+scikit-learn
 scipy
 mord
 statsmodels
