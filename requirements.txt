@@ -8,7 +8,7 @@ scipy==1.0
 mord==0.5
 statsmodels==0.8
 six==1.11
-pandas0.22
+pandas==0.22
 patsy==0.5
 pytz==2018.3
 python_dateutil==2.7
