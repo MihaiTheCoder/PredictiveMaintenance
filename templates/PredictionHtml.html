@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prediction Html</title>
+</head>
+<body>
+<form action="http://predictivemaintenance.azurewebsites.net/predict" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" id="file" accept=".csv,.txt">
+    <input type="submit" value="Upload csv" name="submit">
+</form>
+<h1>
+    Predictive maintenance
+</h1>
+<p>
+    Predictive maintenance techniques are designed to help determine the condition of in-service equipment in order to
+    predict when maintenance should be performed. This approach promises cost savings over routine or time-based
+    preventive maintenance, because tasks are performed only when warranted.
+</p>
+<p>
+    Our predictive maintenance template focuses on the techniques used to predict when an in-service machine will fail,
+    so that maintenance can be planned in advance. This template includes python scripts using libraries such as
+    <b>pandas</b>, <b>numpy</b> and <b>sklearn</b>.
+</p>
+<p>
+    We provided three modeling solutions to accomplish tasks as:<br>
+    &#9679; <b>Regression:</b> Predict the Remaining Useful Life (RUL), or Time to Failure(TTF).<br>
+    &#9679; <b>Binary classification:</b> Predict if an asset will fail within certain time frame(e.g. days).<br>
+    &#9679; <b>Multi-class classification:</b> Predict if an asset will fail in different time windows: E.g., fails in
+    window[1,<i>w0</i>] days; fails in the window [<i>w0</i>+1,<i>w1</i>] days; not fail within <i>w1</i> days
+</p>
+<p>
+    The time units mentioned above can be replaced by working hours, cycles, mileage, transactions, etc. based on the
+    actual scenario.
+</p>
+<p>
+    This template uses the example of simulated aircraft engine run-to-failure events to demonstrate the predictive
+    maintenance modeling process. The implicit assumption of modeling data as done below is that the asset of interest
+    has a progressing degradation pattern, which is reflected in the asset's sensor measurements. By examining the
+    asset's sensor values over time, the machine learning algorithm can learn the relationship between the sensor
+    values and changes in sensor values to the historical failures in order to predict failures in the future.
+</p>
+<p>
+    The template is divided into 2 steps, where the first step deals with data preparation and feature engineering
+    and the second step with train and evaluate model for each task (regression, binary classification and multi-class classification).
+</p>
+<h2>Step 1: Data preparation and feature engineering</h2>
+<p>
+    The template takes three datasets as inputs.<br>
+    &#9679; Training data: It is the aircraft engine run-to-failure data.<br>
+    &#9679; Testing data: It is the aircraft engine operating data without failure events recorded.<br>
+    &#9679; Ground truth data: It contains the information of true remaining cycles for each engine in the testing data.
+</p>
+<p>
+    The training data consists of multiple multivariate times series with "cycles" as the time unit, together with 21 sensor reading for each cycle.
+    Each time series can be assumed to start with different degrees of initial wear and manufacturing variation, and this information is unknown to the user.
+    In this simulated data, the engine is assumed to be operating normally at the start of each time series.
+    It starts to degrade at some point during the series of the operating cycles. The degradation progresses and grows in magnitude.
+    When a predefined threshold is reached, then the engine is considered unsafe for further operation.
+    <b>In other words, the last cycle in each time series can be considered as the failure point of the corresponding engine.</b>
+    Taking the sample training data shown in the following table as an example, the wngine with id=1 fails at cycle 192, and the engine withe id=2 fails at cycle 287.
+</p>
+<p>
+    The testing data has the same data schema as the training data. The only difference is that the data does not indicate when the failure occurs( in other words,
+    the last time period does NOT represent the failure point), which means that this data doesn't show how many more cycles an engine can last before it fails.
+</p>
+<p>
+    The ground truth data provides the number of remaining working cycles for the engines in the testing data.
+</p>
+<h4>Data Labeling</h4>
+<p>
+    Given the input data description from above there is one question we need to ask: "Given these aircraft engine operation and failure events history,
+    can we predict when an in-service engine will fail?"
+</p>
+<p>This question can be re-formulate into three closely relevant questions, but to answer on each we'll be using three different types of machine learning models.</p>
+<p>
+    &#9679; Regresion models: How many more cycles an in-service engine will last before it fails?<br>
+    &#9679; Binary classification: Is this engine going to fail within <i>w1</i> cycles?<br>
+    &#9679; Multi-class classification: Is this engine going to fail within the window [1, <i>w0</i>] cycles or to fail within
+    the window [<i>w0</i>+1, <i>w1</i>] cycles, or it will not fail within <i>w1</i> cycles?
+</p>
+<p>
+    We labeled the training data with "RUL", "label1" and "label2" which are for regressioj, binary classification,
+    and multi-classification models. In the following figure we show an example for engine with id=1. Here <i>w0</i> and <i>w1</i>
+    are predefined use case related parameters which are used to label the training data. The customer needs to decide
+    how far ahead of time the alert of failure should trigger before the actual failure event.
+</p>
+<h4>Feature engineering</h4>
+<p>
+    Another important task is to generate training and testing features.
+</p>
+<img src="../img/example_dataLabel.jpg">
+<p>
+    The features that are included or created in the training data can be grouped into two categories.<br>
+    &#9679; Selected raw features<br>
+    &#9679; Aggregate features
+</p>
+<p>
+    <b>Selected raw features</b> - the raw features are those that are included in the original input data. In this
+    template , all the sensor measurements (s1-s21) are included in the training data. Other raw features get used are: cycle, setting1-setting3.
+</p>
+<p>
+    <b>Aggregate features</b> - these features summarize the historical activity of each asset. In this template,
+    two types of aggregate features are created for each of the 21 sensors. The descriptio of these features are shown below:<br>
+    &#9679; a1-121: the moving average of sensor values in the most <i>w</i> recent cycles<br>
+    &#9679; sd1-sd21: the standard deviation of sensor values in the most <i>w</i> recent cycles
+</p>
+<h4>Prepare the testing data</h4>
+<p>
+    Similar to the training data, the time series data in the testing data helps to aggregate features during the feature engineering process.
+     Instead of having all time series data in the testing data, we only keep the the record with the maximum cycle for each engine id.
+    In other words, one record is retained for each engine. Eventually, the testing data contains 100 records, which matches the RUL in the ground truth data.
+</p>
+<p>
+    The output datasets of Step 1 will serve as the input datasets of Step 2.<br>
+    In order to apply any transformations which was previously applied in the training experiment into the scoring experiment,
+    this transformation has to be saved in the training experiment. In this case, we performed data normalization to the
+    training dataIn order to apply any transformations which was previously applied in the training experiment into the
+    scoring experiment, this transformation has to be saved in the training experiment. In this case, we performed data
+    normalization to the training data, also to the testing data.
+</p>
+<h2>Step 2: Train and evaluate model</h2>
+<p>
+    This step consists of three parallel steps, each of which has a separate python script. The names of these experiments are shown below.<br>
+    &#9679; Step 2A - Train and evaluate regression models<br>
+    &#9679; Step 2B - Train and evaluate binary classification models<br>
+    &#9679; Step 2C - Train and evaluation multi-class classification models<br>
+</p>
+<p>
+    There are several common steps when training three different types of models. We illustrate these similar steps in detail as follows.
+</p>
+<p>
+    In the first place, they share the same training data and testing data. Secondly, we will exclude irrelevant label columns for each model.
+    For example, the Step 2A will exclude columns "label1" and "label2" and keep only the label "RUL" in the training data to prepare train regression models on "RUL" column.
+    Finally, we select top 35 correlated features in the training data based on "Pearson Correlation" measure.
+</p>
+<h4>Step 2A</h4>
+<p>
+    In this step, we train and evaluate four regression models: Decision forest Regression, Boosted Decision Tree Regression, Poisson Regression, and Neural Network Regression.
+</p>
+<img src="../img/regression_output_prediction.jpg">
+<h4>Step 2B</h4>
+<p>
+    In this step, we train and evaluate four binary classification models: Two-Class Logistic Regression, Two-Class Boosted Decision Tree, Two-Class Decision Forest, and Two-Class Neural Network.
+</p>
+<p>
+    The following figure compares the resultrs from the four models to determine the best model. The algorithm "Two-Class Neural Network" performs best in terms of four metrics: "Accuracy",
+    "Precision", "Recal", and "F-Score".
+</p>
+<img src="../img/bin_classif_prediction.jpg">
+<h4>Step 2C</h4>
+<p>
+    In this step, we train and evaluate two multiclass classification models: Multiclass Logistic Regression and Multiclass Neural Network,
+    and two ordinal regression models on Two-Class Logistic Regression and Two-Class Neural Network. ordinal regression is a type of regression analysis used to predict an ordinal variable.
+    An ordinal variable is the variable whose value can be ranked or ordered, but the real distance between these values is unknown.
+    In the multi-class classification problem formulated here, the class attribute "label2" is an ordinal variable, as its value reflects the severity of the failure progress.
+</p>
+<p>
+    The following figures compares the results of "Multiclass Logistic Regression" and "Multiclass Neural Network", where the latter performs better in term of six metrics:
+    "Overall accuracy", "Average accuracy",  "Micro-averaged precision", "Macro-averaged precision", "Micro-averaged recall", and "Macro-averaged recall".
+</p>
+<img src="../img/multiclass_prediction.jpg">
+<p>
+    When evaluating the ordinal regression models, the resulting metrics are similar to the results from
+</p>
+</body>
+<footer>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</footer>
+</html>
