@@ -55,11 +55,14 @@
     The training data consists of multiple multivariate times series with "cycles" as the time unit, together with 21 sensor reading for each cycle.
     Each time series can be assumed to start with different degrees of initial wear and manufacturing variation, and this information is unknown to the user.
     In this simulated data, the engine is assumed to be operating normally at the start of each time series.
-    It starts to degrade at some point during the series of the operating cycles. The degradation progresses and grows in magnitude.
+    It starts to degrade at some point during the series of the operating cycles.
     When a predefined threshold is reached, then the engine is considered unsafe for further operation.
     <b>In other words, the last cycle in each time series can be considered as the failure point of the corresponding engine.</b>
-    Taking the sample training data shown in the following table as an example, the wngine with id=1 fails at cycle 192, and the engine withe id=2 fails at cycle 287.
+    Taking the sample training data shown in the following table as an example, the engine with id = 1 fails at cycle 192, and the engine with id = 2 fails at cycle 287.
 </p>
+<img src="../img/train_data.jpg"><br><br>
+<img src="../img/test_data.jpg"><br><br>
+<img src="../img/RUL.jpg"><br><br>
 <p>
     The testing data has the same data schema as the training data. The only difference is that the data does not indicate when the failure occurs( in other words,
     the last time period does NOT represent the failure point), which means that this data doesn't show how many more cycles an engine can last before it fails.
@@ -101,8 +104,8 @@
 </p>
 <p>
     <b>Aggregate features</b> - these features summarize the historical activity of each asset. In this template,
-    two types of aggregate features are created for each of the 21 sensors. The descriptio of these features are shown below:<br>
-    &#9679; a1-121: the moving average of sensor values in the most <i>w</i> recent cycles<br>
+    two types of aggregate features are created for each of the 21 sensors. The description of these features are shown below:<br>
+    &#9679; a1-a21: the moving average of sensor values in the most <i>w</i> recent cycles<br>
     &#9679; sd1-sd21: the standard deviation of sensor values in the most <i>w</i> recent cycles
 </p>
 <h4>Prepare the testing data</h4>
@@ -115,7 +118,7 @@
     The output datasets of Step 1 will serve as the input datasets of Step 2.<br>
     In order to apply any transformations which was previously applied in the training experiment into the scoring experiment,
     this transformation has to be saved in the training experiment. In this case, we performed data normalization to the
-    training dataIn order to apply any transformations which was previously applied in the training experiment into the
+    training data. In order to apply any transformations which was previously applied in the training experiment into the
     scoring experiment, this transformation has to be saved in the training experiment. In this case, we performed data
     normalization to the training data, also to the testing data.
 </p>
@@ -136,7 +139,7 @@
 </p>
 <h4>Step 2A</h4>
 <p>
-    In this step, we train and evaluate four regression models: Decision forest Regression, Boosted Decision Tree Regression, Poisson Regression, and Neural Network Regression.
+    In this step, we train and evaluate four regression models: Decision Forest Regression, Boosted Decision Tree Regression, Poisson Regression, and Neural Network Regression.
 </p>
 <img src="../img/regression_output_prediction.jpg">
 <h4>Step 2B</h4>
@@ -151,7 +154,7 @@
 <h4>Step 2C</h4>
 <p>
     In this step, we train and evaluate two multiclass classification models: Multiclass Logistic Regression and Multiclass Neural Network,
-    and two ordinal regression models on Two-Class Logistic Regression and Two-Class Neural Network. ordinal regression is a type of regression analysis used to predict an ordinal variable.
+    and two ordinal regression models on Two-Class Logistic Regression and Two-Class Neural Network. Ordinal regression is a type of regression analysis used to predict an ordinal variable.
     An ordinal variable is the variable whose value can be ranked or ordered, but the real distance between these values is unknown.
     In the multi-class classification problem formulated here, the class attribute "label2" is an ordinal variable, as its value reflects the severity of the failure progress.
 </p>
@@ -161,7 +164,6 @@
 </p>
 <img src="../img/multiclass_prediction.jpg">
 <p>
-    When evaluating the ordinal regression models, the resulting metrics are similar to the results from
 </p>
 </body>
 <footer>
