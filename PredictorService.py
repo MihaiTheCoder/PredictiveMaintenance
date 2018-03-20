@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask import request
 import csv
 import json
@@ -32,6 +32,9 @@ def summary():
 def is_pikle_file(path):
     return path.endswith('pkl') and os.path.isfile(path)
 
+@app.route('/')
+def index():
+    return render_template('PredictionHtml.html')
 
 def normalize_relative_to_dataset(dataset, refence_dataset):
     normalized_dataset = (dataset - refence_dataset.min()) / (refence_dataset.max()-refence_dataset.min())
@@ -82,7 +85,7 @@ if __name__ == '__main__':
 
     train_df = train_df[top_features]
 
-    app.run()
+    app.run(host='0.0.0.0', port=5000)
 
 
 

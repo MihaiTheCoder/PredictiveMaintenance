@@ -1,9 +1,0 @@
-pip
-flask
-numpy
-scipy
-sklearn
-scikit_learn
-statsmodels
-pandas
-mord
