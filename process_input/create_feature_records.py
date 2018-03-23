@@ -22,11 +22,17 @@ n_test_after_sensor_columns = 0
 initial_column_names = ["id", "cycle", "setting1", "setting2", "setting3", "s1", "s2", "s3", "s4", "s5", "s6",
                         "s7", "s8", "s9", "s10", "s11", "s12", "s13", "s14", "s15", "s16", "s17", "s18", "s19",
                         "s20", "s21"]
+initial_column_names_RUL = ["id", "cycle", "setting1", "setting2", "setting3", "s1", "s2", "s3", "s4", "s5", "s6",
+                        "s7", "s8", "s9", "s10", "s11", "s12", "s13", "s14", "s15", "s16", "s17", "s18", "s19",
+                        "s20", "s21", "RUL"]
 
 
 def create_dataset_from_input(tsv_file):
     tsv = pd.read_csv(filepath_or_buffer=tsv_file, delim_whitespace=True, header=None,
-                      names=initial_column_names)
+                      names=initial_column_names_RUL)
+    if tsv['RUL'].empty == True:
+        tsv = tsv.drop(['RUL'], axis=1)
+
     return tsv
 
 

@@ -13,6 +13,7 @@ app = Flask(__name__)
 top_features = ""
 train_df = None
 
+
 def csv_to_json(file_path):
     data = []
     with open(file_path) as f:
@@ -32,13 +33,43 @@ def summary():
 def is_pikle_file(path):
     return path.endswith('pkl') and os.path.isfile(path)
 
+
 @app.route('/')
 def index():
     return render_template('PredictionHtml.html')
 
+
 def normalize_relative_to_dataset(dataset, refence_dataset):
     normalized_dataset = (dataset - refence_dataset.min()) / (refence_dataset.max()-refence_dataset.min())
     return normalized_dataset
+
+
+def read_file_line_by_line_into_list(file_path):
+    with open(file_path) as f:
+        content = f.readlines()
+
+    content = [x.strip() for x in content]
+    return content
+
+def calculate_RUL(original_df):
+    truth_df = pandas.DataFrame(
+        {'RULL': pandas.Series(read_file_line_by_line_into_list('PM_truth.txt'), dtype='int32')})
+    truth_df['id'] = truth_df.index + 1
+    truth_df = truth_df.reset_index(drop=True)
+    original_df = original_df.merge(truth_df, on='id')
+    counts_df = original_df.groupby(['id', 'RULL']).count()
+    ccc_df = pandas.DataFrame({'count': counts_df['cycle']})
+    ccc_df = ccc_df.reset_index()
+    ccc_df['id'] = ccc_df.index + 1
+    ccc_df = ccc_df.reset_index(drop=True)
+    ccc_df['total_rul'] = ccc_df['RULL'] + ccc_df['count']
+    ccc_df = ccc_df.drop(['RULL', 'count'], axis=1)
+    original_df = original_df.merge(ccc_df, on='id')
+    original_df = original_df.drop(['RUL'], axis=1)
+    original_df['RUL'] = original_df['total_rul'] - original_df['cycle']
+    original_df = original_df.drop(['RULL', 'total_rul'], axis=1)
+
+    return original_df
 
 
 @app.route('/predict', methods=['POST'])
@@ -46,6 +77,8 @@ def predict():
     file = request.files['file']
     original_df = create_feature_records.create_dataset_from_input(file)
     df_with_features = original_df.copy()
+    if 'RUL' in df_with_features:
+        df_with_features = df_with_features.drop(['RUL'], axis=1)
     df_with_features = create_feature_records.add_moving_average_moving_std(df_with_features, 0)
     df_with_features = df_with_features.drop(labels=['id'], axis=1)
     df_with_features = normalize_relative_to_dataset(df_with_features, train_df)
@@ -65,7 +98,13 @@ def predict():
             predictions = model.predict(df_with_features)
             original_df[algorithm_name] = pandas.Series(predictions)
 
-    original_df.to_csv(buffer)
+    if original_df['RUL'].isnull().sum() == 0:
+        original_df = calculate_RUL(original_df)
+    else:
+        original_df = original_df.drop(['RUL'], axis=1)
+
+    original_df = original_df.drop(['setting1', 'setting2', 'setting3'], axis=1)
+    original_df.to_csv(buffer, index=False)
     buffer.seek(0)
     contents = buffer.getvalue()
     buffer.close()
