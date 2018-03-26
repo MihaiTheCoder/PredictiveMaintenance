@@ -103,7 +103,6 @@ def predict():
     else:
         original_df = original_df.drop(['RUL'], axis=1)
 
-    original_df = original_df.drop(['setting1', 'setting2', 'setting3'], axis=1)
     original_df.to_csv(buffer, index=False)
     buffer.seek(0)
     contents = buffer.getvalue()
